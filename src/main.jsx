@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { StoreProvider, useStore } from './store.jsx';
 import { Layout } from './components/Layout.jsx';
 import Onboarding from './pages/Onboarding.jsx';
@@ -11,6 +11,11 @@ import School from './pages/School.jsx';
 import Learn from './pages/Learn.jsx';
 import Normal from './pages/Normal.jsx';
 import Tell from './pages/Tell.jsx';
+import Home from './pages/Home.jsx';
+import About from './pages/About.jsx';
+import Parents from './pages/Parents.jsx';
+import Guardian from './pages/Guardian.jsx';
+import People from './pages/People.jsx';
 import { Lock } from './components/Lock.jsx';
 import Settings from './pages/Settings.jsx';
 import Report from './pages/Report.jsx';
@@ -50,7 +55,12 @@ function App() {
     return () => document.removeEventListener('visibilitychange', onVis);
   }, []);
 
-  if (!profile) return <Onboarding />;
+  const { pathname } = useLocation();
+
+  // Public pages: anyone can open these, with no setup and no passcode (they show none of her data).
+  const pub = { '/home': <Home />, '/about': <About />, '/parents': <Parents />, '/guardian': <Guardian /> }[pathname];
+  if (pub) return pub;
+  if (!profile) return pathname === '/start' ? <Onboarding /> : pathname === '/' ? <Home /> : <Navigate to="/" replace />;
   if (lock && !unlocked) return <Lock onUnlock={() => setUnlocked(true)} />;
   return (
     <Layout>
@@ -62,6 +72,7 @@ function App() {
         <Route path="/learn" element={<Learn />} />
         <Route path="/normal" element={<Normal />} />
         <Route path="/tell" element={<Tell />} />
+        <Route path="/people" element={<People />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/report" element={<Report />} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -71,14 +71,15 @@ function Reminder() {
 
 export default function School() {
   const { hash } = useLocation();
+  const { place } = useStore();
   const [open, setOpen] = useState(hash.slice(1) || null);
   useEffect(() => { if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'center' }); }, [hash]);
 
   return (
     <div className="stack">
       <div>
-        <h1>School</h1>
-        <p className="muted">Be ready, and know exactly what to do if something happens.</p>
+        <h1>{place.title}</h1>
+        <p className="muted">{place.blurb}</p>
       </div>
 
       <section className="card">

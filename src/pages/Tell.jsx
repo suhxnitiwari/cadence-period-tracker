@@ -73,6 +73,7 @@ export default function Tell() {
             There’s no wrong way to ask for help.
           </p>
           {person === 'doctor' && <Link className="btn small" to="/report">Open my period report</Link>}
+          {['mom', 'dad', 'guardian', 'adult'].includes(person) && <Link className="btn small" to="/people">Or send them an update from Cadence</Link>}
         </section>
       )}
     </div>

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 import { loadState, saveState, eraseState, requestPersistence, EMPTY_STATE } from './lib/storage.js';
 import { analyze, isEmptyLog, PERIOD_FLOWS } from './lib/cycles.js';
 import { addDays, todayISO } from './lib/dates.js';
+import { ageFrom, voiceForAge, currentGrade, placeFor } from './lib/profile.js';
 
 const Store = createContext(null);
 export const useStore = () => useContext(Store);
@@ -36,13 +37,15 @@ export function StoreProvider({ children }) {
   });
 
   const actions = {
-    finishOnboarding: ({ stage, goals, lastStart }) => update((s) => ({
-      profile: { stage, goals },
-      settings: { ...s.settings, voice: stage === 'notYet' || stage === 'new' ? 'simple' : 'standard' },
+    finishOnboarding: ({ stage, goals, lastStart, birth, grade }) => update((s) => ({
+      profile: { stage, goals, birth, grade: grade ? { value: grade, setOn: today } : null },
+      settings: { ...s.settings, voice: voiceForAge(ageFrom(birth, today), stage) },
       days: lastStart ? { ...s.days, [lastStart]: { flow: 'yes', estimated: true } } : s.days,
     })),
     setStage: (stage) => update((s) => ({ profile: { ...s.profile, stage } })),
     setGoals: (goals) => update((s) => ({ profile: { ...s.profile, goals } })),
+    setBirth: (birth) => update((s) => ({ profile: { ...s.profile, birth } })),
+    setGrade: (value) => update((s) => ({ profile: { ...s.profile, grade: value ? { value, setOn: today } : null } })),
     setDay,
 
     /** One tap: "My period started." */
@@ -90,6 +93,9 @@ export function StoreProvider({ children }) {
     [state, today],
   );
 
+  const age = state?.profile ? ageFrom(state.profile.birth, today) : null;
+  const grade = state?.profile ? currentGrade(state.profile.grade, today) : null;
+
   if (!state) return null;
-  return <Store.Provider value={{ ...state, today, analysis, saveError, ...actions }}>{children}</Store.Provider>;
+  return <Store.Provider value={{ ...state, today, analysis, saveError, age, grade, place: placeFor(grade), ...actions }}>{children}</Store.Provider>;
 }

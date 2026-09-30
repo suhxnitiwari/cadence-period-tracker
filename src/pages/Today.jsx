@@ -6,6 +6,7 @@ import { GotPeriod } from '../components/GotPeriod.jsx';
 import { PERIOD_FLOWS, CONFIDENCE, SCHOOL_IMPACT } from '../lib/cycles.js';
 import { say } from '../lib/voice.js';
 import { planOverlaps } from '../lib/plans.js';
+import { ageCheckIns } from '../lib/profile.js';
 import { addDays, diffDays, formatDate, formatRange } from '../lib/dates.js';
 
 const long = (d) => formatDate(d, { weekday: 'long', month: 'long', day: 'numeric' });
@@ -205,7 +206,8 @@ function CalendarChanged() {
 }
 
 export default function Today() {
-  const { analysis: a, today, profile, plans, settings } = useStore();
+  const { analysis: a, today, profile, plans, settings, age, place } = useStore();
+  const checkIns = [...ageCheckIns({ age, stage: profile.stage, periodsCount: a.periods.length }), ...a.checkIns];
   const [gotIt, setGotIt] = useState(false);
   const overlaps = planOverlaps(plans, a.next, today, a.patterns);
   const showStart = !['period', 'stillGoing', 'none'].includes(a.status.phase);
@@ -226,22 +228,27 @@ export default function Today() {
         </section>
       ))}
 
-      {a.checkIns.length > 0 && (
+      {checkIns.length > 0 && (
         <section className="card warm">
           <h2>Worth talking about</h2>
-          {a.checkIns.slice(0, 2).map((c) => <p key={c} className="small">{c}</p>)}
+          {checkIns.slice(0, 2).map((c) => <p key={c} className="small">{c}</p>)}
           <Link className="btn small" to="/tell">Want help telling someone?</Link>
         </section>
       )}
 
       {(soon || (wantsSchool && a.status.phase !== 'period')) && a.status.phase !== 'none' && (
         <section className="card calm row">
-          <span style={{ flex: 1 }}>{soon ? 'Your period might come soon. Is your pouch packed?' : 'Ready for school this week?'}</span>
-          <Link className="btn small" to="/school">School</Link>
+          <span style={{ flex: 1 }}>{soon ? 'Your period might come soon. Is your pouch packed?' : `Ready for ${place.tab === 'School' ? 'school' : 'the week'}?`}</span>
+          <Link className="btn small" to="/school">{place.tab}</Link>
         </section>
       )}
 
       <Journey />
+
+      <section className="card row">
+        <span style={{ flex: 1 }}>Want a parent or guardian to know something?</span>
+        <Link className="btn small" to="/people">Send an update</Link>
+      </section>
 
       <section className="card">
         <h2>{say(settings.voice, 'logTitle')}</h2>

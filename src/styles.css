@@ -128,7 +128,7 @@ button { font-family: inherit; }
 .btn:disabled { opacity: 0.5; cursor: default; }
 label.field { display: block; font-weight: 600; font-size: 0.95rem; }
 label.field > span { display: block; margin-bottom: 6px; }
-input[type='text'], input[type='date'], input[type='search'], textarea {
+input[type='text'], input[type='date'], input[type='search'], select, textarea {
   width: 100%; font: inherit; color: var(--ink); background: var(--surface);
   border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; min-height: 48px;
 }
@@ -237,3 +237,31 @@ details.qa .answer p { white-space: pre-line; }
 .emergency ol { padding-left: 20px; margin: 8px 0 0; }
 .emergency li + li { margin-top: 6px; }
 .overlap { border-left: 4px solid var(--calm); }
+
+/* ---------- public pages ---------- */
+.public-bar { display: flex; align-items: center; gap: 16px; padding: 14px 20px; max-width: 980px; width: 100%; margin: 0 auto; }
+.public-nav { display: flex; gap: 4px; }
+.public-nav a { text-decoration: none; color: var(--ink-2); font-weight: 600; font-size: 0.95rem; padding: 6px 10px; border-radius: 999px; }
+.public-nav a.active, .public-nav a:hover { background: var(--surface-2); color: var(--ink); }
+@media (max-width: 480px) { .public-nav a { padding: 6px 6px; font-size: 0.88rem; } .public-bar { gap: 8px; padding: 12px 16px; } }
+.public-main { width: 100%; max-width: 680px; margin: 0 auto; padding: 8px 16px 32px; }
+.public-main.wide { max-width: 980px; }
+.public-main > * + * { margin-top: 16px; }
+.hero { padding: 40px 0 16px; max-width: 720px; }
+.hero h1 { font-size: clamp(2.1rem, 6vw, 3.3rem); line-height: 1.08; letter-spacing: -0.03em; }
+.hero .lede { font-size: 1.15rem; color: var(--ink-2); }
+.public-grid { display: grid; gap: 16px; }
+.public-grid.three { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.public-grid.two { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.public-grid .card ul, .card ul { padding-left: 20px; }
+.moments { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+.moments li { display: flex; gap: 14px; align-items: baseline; }
+.moments .age { flex-shrink: 0; width: 44px; font-weight: 700; color: var(--accent); font-size: 1.2rem; }
+.letter p { font-size: 1.02rem; }
+.preview { border: 2px dashed var(--line); border-radius: 16px; padding: 12px; }
+.qr { width: 220px; max-width: 70vw; background: #fff; padding: 8px; border-radius: 12px; }
+.qr svg { display: block; width: 100%; height: auto; }
+select { appearance: auto; }
+
+.nowrap, .public-nav a { white-space: nowrap; }
+@media (max-width: 480px) { .wide-only { display: none; } .public-bar .brand { font-size: 1.05rem; } }

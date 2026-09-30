@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useStore } from '../store.jsx';
 import { VOICES } from '../lib/voice.js';
 import { FLOWS, PAIN } from '../lib/cycles.js';
@@ -6,6 +7,7 @@ import { sanitizeBackup } from '../lib/storage.js';
 import { importCsv, importStartDates } from '../lib/importers.js';
 import { hashPasscode } from '../lib/lock.js';
 import { todayISO } from '../lib/dates.js';
+import { MONTHS, GRADES, gradeLabel } from '../lib/profile.js';
 
 function download(name, text, type) {
   const url = URL.createObjectURL(new Blob([text], { type }));
@@ -102,6 +104,41 @@ function BringHistory() {
   );
 }
 
+function AboutMe() {
+  const { profile, setBirth, setGrade, age, grade, today } = useStore();
+  const thisYear = Number(today.slice(0, 4));
+  const years = Array.from({ length: 50 }, (_, i) => thisYear - 7 - i);
+  const b = profile.birth ?? {};
+  const setB = (patch) => {
+    const next = { ...b, ...patch };
+    setBirth(next.month && next.year ? next : null);
+  };
+  return (
+    <section className="card stack">
+      <h2>About me</h2>
+      <p className="muted small" style={{ margin: 0 }}>Optional. Used only to word things right for you. Stays on this device.</p>
+      <div className="row">
+        <label className="field spacer"><span>Birthday month</span>
+          <select value={b.month ?? ''} onChange={(e) => setB({ month: Number(e.target.value) || undefined })}>
+            <option value="">–</option>{MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+          </select>
+        </label>
+        <label className="field spacer"><span>Year</span>
+          <select value={b.year ?? ''} onChange={(e) => setB({ year: Number(e.target.value) || undefined })}>
+            <option value="">–</option>{years.map((y) => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </label>
+      </div>
+      {age != null && <p className="small muted" style={{ margin: 0 }}>You’re {age}.</p>}
+      <label className="field"><span>Grade {grade && <span className="muted small">(now {gradeLabel(grade)}. Moves up every August)</span>}</span>
+        <select value={grade ?? ''} onChange={(e) => setGrade(e.target.value || null)}>
+          <option value="">Prefer not to say</option>{GRADES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+        </select>
+      </label>
+    </section>
+  );
+}
+
 export default function Settings() {
   const { settings, saveSettings, days, eraseEverything, profile, setStage } = useStore();
   const [newSymptom, setNewSymptom] = useState('');
@@ -132,6 +169,8 @@ export default function Settings() {
         )}
       </section>
 
+      <AboutMe />
+
       <section className="card stack">
         <h2>My own symptoms</h2>
         {settings.customSymptoms.length > 0 && (
@@ -143,6 +182,11 @@ export default function Settings() {
           <input type="text" value={newSymptom} onChange={(e) => setNewSymptom(e.target.value)} placeholder="Something else +" maxLength={30} style={{ flex: 1, minWidth: 140 }} />
           <button className="btn small">Add</button>
         </form>
+      </section>
+
+      <section className="card row">
+        <span style={{ flex: 1 }}><strong>My people</strong><br /><span className="muted small">Send a parent or guardian an update you choose.</span></span>
+        <Link className="btn small" to="/people">Open</Link>
       </section>
 
       <Passcode />
@@ -182,6 +226,7 @@ export default function Settings() {
         <p><strong>You don’t need to know your cycle.</strong> Understanding it is our job.</p>
         <p><strong>Your period fits into your life.</strong> School, college, work, travel, sports and everything after. You never graduate from Cadence. It grows up with you.</p>
         <p className="small muted" style={{ margin: 0 }}>Notice → Understand → Prepare → Speak up.</p>
+        <div className="row"><Link className="btn small" to="/about">About Cadence</Link><Link className="btn small" to="/parents">Letter to parents</Link></div>
       </section>
     </div>
   );

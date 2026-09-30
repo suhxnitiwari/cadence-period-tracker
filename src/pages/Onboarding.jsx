@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store.jsx';
 import { Logo } from '../components/Layout.jsx';
+import { MONTHS, GRADES } from '../lib/profile.js';
 
 export const STAGES = [
   ['notYet', 'Not yet'],
@@ -25,18 +27,29 @@ function Choice({ pressed, onClick, children }) {
 
 export default function Onboarding() {
   const { finishOnboarding, today } = useStore();
+  const navigate = useNavigate();
   const [step, setStep] = useState('welcome');
   const [stage, setStage] = useState(null);
   const [remember, setRemember] = useState(null);
   const [lastStart, setLastStart] = useState('');
   const [goals, setGoals] = useState([]);
+  const [month, setMonth] = useState('');
+  const [year, setYear] = useState('');
+  const [grade, setGrade] = useState(null);
+  const thisYear = Number(today.slice(0, 4));
+  const years = Array.from({ length: 50 }, (_, i) => thisYear - 7 - i);
 
-  const steps = ['welcome', 'stage', ...(stage && stage !== 'notYet' ? ['last'] : []), 'goals', 'privacy'];
+  const steps = ['welcome', 'stage', ...(stage && stage !== 'notYet' ? ['last'] : []), 'birthday', 'grade', 'goals', 'privacy'];
   const next = () => setStep(steps[steps.indexOf(step) + 1]);
   const back = () => setStep(steps[steps.indexOf(step) - 1]);
   const toggleGoal = (g) => setGoals((gs) => (gs.includes(g) ? gs.filter((x) => x !== g) : [...gs, g]));
 
-  const done = () => finishOnboarding({ stage, goals, lastStart: remember === 'yes' && lastStart ? lastStart : null });
+  const done = () => { navigate('/', { replace: true }); finish(); };
+  const finish = () => finishOnboarding({
+    stage, goals, grade,
+    lastStart: remember === 'yes' && lastStart ? lastStart : null,
+    birth: month && year ? { month: Number(month), year: Number(year) } : null,
+  });
 
   return (
     <div className="onboard">
@@ -91,6 +104,41 @@ export default function Onboarding() {
         </>
       )}
 
+      {step === 'birthday' && (
+        <>
+          <p className="question">When’s your birthday?</p>
+          <p className="muted" style={{ marginTop: -8 }}>Just the month and year. It helps Cadence talk to you the right way, and it never leaves this device.</p>
+          <div className="row">
+            <label className="field spacer"><span>Month</span>
+              <select value={month} onChange={(e) => setMonth(e.target.value)}>
+                <option value="">Month</option>
+                {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+              </select>
+            </label>
+            <label className="field spacer"><span>Year</span>
+              <select value={year} onChange={(e) => setYear(e.target.value)}>
+                <option value="">Year</option>
+                {years.map((y) => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </label>
+          </div>
+          <div className="spacer" />
+          <button className="btn primary block" disabled={Boolean(month) !== Boolean(year)} onClick={next} style={{ marginTop: 24 }}>{month && year ? 'Next' : 'Skip'}</button>
+        </>
+      )}
+
+      {step === 'grade' && (
+        <>
+          <p className="question">What grade are you in?</p>
+          <p className="muted" style={{ marginTop: -8 }}>So School Mode fits your life. It moves up by itself every year.</p>
+          <div className="chips">
+            {GRADES.map(([k, label]) => <button key={k} type="button" className="chip" aria-pressed={grade === k} onClick={() => setGrade(grade === k ? null : k)}>{label}</button>)}
+          </div>
+          <div className="spacer" />
+          <button className="btn primary block" onClick={next} style={{ marginTop: 24 }}>{grade ? 'Next' : 'Skip'}</button>
+        </>
+      )}
+
       {step === 'goals' && (
         <>
           <p className="question">What would you like help with?</p>
@@ -106,7 +154,7 @@ export default function Onboarding() {
         <div className="stack">
           <p className="question">This is just for you.</p>
           <div className="card stack">
-            <p><strong>Everything stays on this device.</strong> There’s no account, and we don’t ask your name, email or age.</p>
+            <p><strong>Everything stays on this device.</strong> There’s no account, and no name, email or phone number. Your birthday and grade stay here too.</p>
             <p><strong>Nobody else can see it.</strong> Not us, not advertisers, not a parent dashboard. If you want to tell someone something, Cadence can help you, but you decide.</p>
             <p><strong>You can take it or delete it anytime</strong> from Settings.</p>
           </div>

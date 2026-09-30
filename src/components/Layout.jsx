@@ -32,7 +32,8 @@ const TABS = [
 ];
 
 export function Layout({ children }) {
-  const { saveError } = useStore();
+  const { saveError, place } = useStore();
+  const tabs = TABS.map((t) => (t[0] === '/school' ? [t[0], place.tab, t[2]] : t));
   return (
     <div className="app">
       <header className="topbar">
@@ -47,7 +48,7 @@ export function Layout({ children }) {
         <p className="footer">Periods aren’t a luxury. Period tracking shouldn’t be either.<br />Free means free. No ads, no subscription, ever.<br />© {new Date().getFullYear()} Suhani Tiwari. All rights reserved.</p>
       </main>
       <nav className="tabbar" aria-label="Main">
-        {TABS.map(([to, label, key]) => <NavLink key={to} to={to} end={to === '/'}>{ICONS[key]}{label}</NavLink>)}
+        {tabs.map(([to, label, key]) => <NavLink key={to} to={to} end={to === '/'}>{ICONS[key]}{label}</NavLink>)}
       </nav>
     </div>
   );

@@ -200,7 +200,8 @@ test('no fertility, ovulation, contraception or sex-tracking features in the app
   const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).forEach((e) => {
     const p = path.join(dir, e.name);
     if (e.isDirectory()) walk(p);
-    else if (/\.(js|jsx)$/.test(e.name) && !e.name.endsWith('.test.js')) files.push(p);
+    // mission.js names what Cadence will never build, so it's the one exemption.
+    else if (/\.(js|jsx)$/.test(e.name) && !e.name.endsWith('.test.js') && e.name !== 'mission.js') files.push(p);
   });
   walk(root);
   const banned = /fertil|ovulat|contracept|conceiv|intercourse|masturbat|sex drive|sexual activity/i;
@@ -245,4 +246,47 @@ test('usual ranges ignore a single outlier, and symptoms read naturally', async 
   assert.equal(symptomPhrase('Tired'), 'feeling tired');
   assert.equal(symptomPhrase('Headache'), 'headaches');
   assert.equal(symptomPhrase('Cramps'), 'cramps');
+});
+
+test('birthday + grade: age, grade that moves up each August, place and voice', async () => {
+  const p = await import('./profile.js');
+  assert.equal(p.ageFrom({ year: 2014, month: 10 }, '2026-09-30'), 11);
+  assert.equal(p.ageFrom({ year: 2014, month: 9 }, '2026-09-30'), 12);
+  assert.equal(p.currentGrade({ value: '6', setOn: '2026-09-30' }, '2027-07-31'), '6');
+  assert.equal(p.currentGrade({ value: '6', setOn: '2026-09-30' }, '2027-08-01'), '7');
+  assert.equal(p.currentGrade({ value: '12', setOn: '2026-09-30' }, '2027-09-01'), 'college');
+  assert.equal(p.currentGrade({ value: '12', setOn: '2026-09-30' }, '2031-09-01'), 'done');
+  assert.equal(p.placeFor('college').tab, 'Campus');
+  assert.equal(p.placeFor('7').tab, 'School');
+  assert.equal(p.voiceForAge(9), 'simple');
+  assert.equal(p.voiceForAge(13), 'standard');
+  assert.equal(p.voiceForAge(20), 'grown');
+  assert.equal(p.ageCheckIns({ age: 15, stage: 'notYet', periodsCount: 0 }).length, 1);
+  assert.equal(p.ageCheckIns({ age: 12, stage: 'notYet', periodsCount: 0 }).length, 0);
+});
+
+test('guardian updates: only what she chose, round-trips through the link, nothing else leaks', async () => {
+  const c = await import('./connect.js');
+  const days = logPeriods(['2026-08-01', '2026-08-30']);
+  days['2026-08-30'].notes = 'secret diary';
+  days['2026-08-30'].symptoms = ['Sad'];
+  const analysis = analyze(days, {}, '2026-09-10');
+  const u = c.buildUpdate({ to: 'Mom', name: 'Ava', include: { next: true, request: true }, request: 'supplies', analysis, today: '2026-09-10' });
+  assert.deepEqual(Object.keys(u).sort(), ['at', 'name', 'next', 'req', 'to', 'v']);
+  const link = c.encodeUpdate(u);
+  assert.match(link, /^[A-Za-z0-9_-]+$/);
+  assert.deepEqual(c.decodeUpdate(`#${link}`), u);
+  assert.doesNotMatch(JSON.stringify(u), /secret|Sad/);
+  assert.equal(c.decodeUpdate('#not-valid'), null);
+  assert.ok(c.waysToHelp(u).some((t) => t.includes('Stock pads')));
+});
+
+test('only the mission copy may name out-of-scope features, and no app code imports it', () => {
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const allowed = new Set(['Home.jsx', 'About.jsx', 'Parents.jsx']);
+  const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)]));
+  for (const f of walk(root)) {
+    if (!/\.(js|jsx)$/.test(f) || f.endsWith('.test.js')) continue;
+    if (fs.readFileSync(f, 'utf8').includes('content/mission.js')) assert.ok(allowed.has(path.basename(f)), `${path.basename(f)} imports mission copy`);
+  }
 });
