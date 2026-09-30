@@ -1,20 +1,44 @@
-// Everything lives in this browser's IndexedDB. There is no account and no
-// server that receives her data. Export/import is the backup.
+// Everything lives in this browser's IndexedDB, with no account. The only thing
+// that ever leaves the device is opt-in, end-to-end encrypted sync between
+// phones she (or her parent) pairs. Export/import is the backup.
 const DB = 'cadence-local';
 const STORE = 'state';
 const KEY = 'v1';
 
-export const EMPTY_STATE = {
-  version: 1,
-  profile: null, // set by onboarding: { stage, goals }
-  days: {},
-  openPeriod: null,
-  settings: { customSymptoms: [], reminderTitle: 'Might want your pouch tomorrow 🎒', voice: 'standard', calendarStyle: 'discreet' },
-  pouch: null, // null = default checklist
-  plans: [], // "My life": { id, title, emoji, start, end }
-  calendarWindow: null, // what she last added to her calendar: { cycleKey, earliest, latest, style, sequence }
-  lock: null, // optional passcode: { salt, hash }
-};
+export const DEFAULT_SETTINGS = { customSymptoms: [], reminderTitle: 'Might want your pouch tomorrow 🎒', voice: 'standard', calendarStyle: 'discreet' };
+
+/** One person being tracked. A parent's phone can hold several (their kids, themselves). */
+export function newProfile({ id = `p${Math.random().toString(36).slice(2, 10)}`, relation = 'me', name = '' } = {}) {
+  return {
+    id,
+    relation, // 'me' = the person using this phone · 'child' = a parent logging for their child
+    name,
+    profile: null, // set by onboarding: { stage, goals, birth, grade }
+    days: {},
+    openPeriod: null,
+    settings: { ...DEFAULT_SETTINGS },
+    pouch: null, // null = default checklist
+    plans: [], // "My life": { id, title, emoji, start, end }
+    calendarWindow: null, // what was last added to a calendar: { cycleKey, earliest, latest, style, sequence }
+    sync: null, // encrypted sharing with another phone (see lib/sync.js)
+  };
+}
+
+export const EMPTY_STATE = { version: 2, activeId: null, profiles: {}, lock: null };
+
+/** Version 1 stored a single person at the top level. It becomes the "me" profile. */
+export function migrate(saved) {
+  if (!saved) return EMPTY_STATE;
+  if (saved.version === 2) {
+    const profiles = Object.fromEntries(Object.entries(saved.profiles ?? {}).map(([id, p]) => [id, { ...newProfile({ id }), ...p, settings: { ...DEFAULT_SETTINGS, ...p.settings } }]));
+    return { ...EMPTY_STATE, ...saved, profiles };
+  }
+  if (!saved.profile) return { ...EMPTY_STATE, lock: saved.lock ?? null };
+  const me = { ...newProfile({ id: 'me' }), ...saved, id: 'me', relation: 'me', name: '', settings: { ...DEFAULT_SETTINGS, ...saved.settings } };
+  delete me.version;
+  delete me.lock;
+  return { version: 2, activeId: 'me', profiles: { me }, lock: saved.lock ?? null };
+}
 
 function open() {
   return new Promise((resolve, reject) => {
@@ -35,8 +59,7 @@ function tx(mode, fn) {
 }
 
 export async function loadState() {
-  const saved = await tx('readonly', (s) => s.get(KEY));
-  return saved ? { ...EMPTY_STATE, ...saved, settings: { ...EMPTY_STATE.settings, ...saved.settings } } : EMPTY_STATE;
+  return migrate(await tx('readonly', (s) => s.get(KEY)));
 }
 
 export const saveState = (state) => tx('readwrite', (s) => s.put(state, KEY));

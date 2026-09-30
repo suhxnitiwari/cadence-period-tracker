@@ -19,7 +19,7 @@ const EXPLAIN = [
 
 /** The easiest interaction in the app: "I got my period" → first one? → how's your flow? */
 export function GotPeriod({ onClose }) {
-  const { analysis, today, startPeriod } = useStore();
+  const { analysis, today, startPeriod, person } = useStore();
   const neverLogged = analysis.periods.length === 0;
   const [step, setStep] = useState(neverLogged ? 'first' : 'flow');
   const [isFirst, setIsFirst] = useState(false);
@@ -31,10 +31,10 @@ export function GotPeriod({ onClose }) {
   };
 
   return (
-    <Sheet title={step === 'firstDone' ? 'You did it 💗' : 'I got my period'} onClose={onClose}>
+    <Sheet title={step === 'firstDone' ? (person.isChild ? 'A big day 💗' : 'You did it 💗') : person.isChild ? `${person.You} got a period` : 'I got my period'} onClose={onClose}>
       {step === 'first' && (
         <div className="stack">
-          <p className="big">Is this your first one?</p>
+          <p className="big">Is this {person.your} first one?</p>
           <button className="choice" onClick={() => { setIsFirst(true); setStep('flow'); }}>Yes!</button>
           <button className="choice" onClick={() => setStep('flow')}>Nope</button>
         </div>
@@ -59,7 +59,19 @@ export function GotPeriod({ onClose }) {
         </div>
       )}
 
-      {step === 'firstDone' && (
+      {step === 'firstDone' && person.isChild && (
+        <div className="stack">
+          <p>A first period is a big moment. Staying calm and matter-of-fact tells {person.you} this is a normal, healthy part of growing up.</p>
+          <ul className="list">
+            <li><Link className="list-link" to="/parents" onClick={onClose}>Parent guide: the first day</Link></li>
+            <li><Link className="list-link" to="/learn#products" onClick={onClose}>How to use a pad (to show {person.you})</Link></li>
+            <li><Link className="list-link" to="/school" onClick={onClose}>Pack a pouch for school</Link></li>
+          </ul>
+          <button className="btn primary block" onClick={onClose}>Done</button>
+        </div>
+      )}
+
+      {step === 'firstDone' && !person.isChild && (
         <div className="stack">
           <p>Getting your first period is a big deal, and it’s completely normal. You’re not in trouble, nothing is wrong, and you don’t have to figure it out alone.</p>
           <ul className="list">

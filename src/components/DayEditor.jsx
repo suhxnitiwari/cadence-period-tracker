@@ -12,7 +12,7 @@ const FLOW_OPTIONS = [
 
 /** Everything saves the moment she taps it. No save button to forget. */
 export function DayEditor({ date, compact = false }) {
-  const { days, setDay, settings } = useStore();
+  const { days, setDay, settings, hidden, person } = useStore();
   const log = days[date] ?? {};
   const [notes, setNotes] = useState(log.notes ?? '');
   const [showAll, setShowAll] = useState(!compact);
@@ -24,8 +24,11 @@ export function DayEditor({ date, compact = false }) {
     update({ symptoms: cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s] });
   };
 
-  const groups = { ...SYMPTOMS, ...(settings.customSymptoms?.length ? { Mine: settings.customSymptoms } : {}) };
-  const shown = showAll ? Object.entries(groups) : [['Body', ['Cramps', 'Headache', 'Bloating', 'Tired', 'Back pain', 'Acne']], ['Feelings', SYMPTOMS.Feelings.slice(0, 6)]];
+  const groups = hidden.symptoms ? {} : { ...SYMPTOMS, ...(settings.customSymptoms?.length ? { Mine: settings.customSymptoms } : {}) };
+  const shown = hidden.symptoms ? [] : showAll ? Object.entries(groups) : [['Body', ['Cramps', 'Headache', 'Bloating', 'Tired', 'Back pain', 'Acne']], ['Feelings', SYMPTOMS.Feelings.slice(0, 6)]];
+  const privateNote = Object.values(hidden).some(Boolean) && (
+    <p className="muted small" style={{ margin: 0 }}>{person.You} keeps some things private on their own phone{hidden.pain ? ', like pain' : ''}{hidden.symptoms ? `${hidden.pain ? ' and' : ', like'} symptoms and feelings` : ''}. That’s by design.</p>
+  );
   const flowValue = log.flow === 'yes' ? null : log.flow ?? null;
 
   return (
@@ -41,7 +44,7 @@ export function DayEditor({ date, compact = false }) {
         </div>
       </div>
 
-      <div>
+      {!hidden.pain && <div>
         <p className="chip-label" id={`pain-${date}`}>Pain</p>
         <div className="chips" role="group" aria-labelledby={`pain-${date}`}>
           {PAIN.map((p) => (
@@ -49,7 +52,7 @@ export function DayEditor({ date, compact = false }) {
               onClick={() => update({ pain: log.pain === p ? undefined : p })}>{PAIN_LABELS[p]}</button>
           ))}
         </div>
-      </div>
+      </div>}
 
       {shown.map(([group, list]) => (
         <div key={group}>
@@ -61,11 +64,12 @@ export function DayEditor({ date, compact = false }) {
           </div>
         </div>
       ))}
-      {!showAll && <button type="button" className="btn small" onClick={() => setShowAll(true)}>More: clots, sleep, sports, medicine, your own…</button>}
+      {privateNote}
+      {!showAll && !hidden.symptoms && <button type="button" className="btn small" onClick={() => setShowAll(true)}>More: clots, sleep, sports, medicine, your own…</button>}
 
-      {showAll && (
+      {(showAll || hidden.symptoms) && (
         <label className="field">
-          <span>Private notes <span className="muted small">(only on this device)</span></span>
+          <span>Private notes <span className="muted small">(only on this phone, never shared)</span></span>
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
             onBlur={() => notes !== (log.notes ?? '') && update({ notes: notes || undefined })}
             placeholder="Anything you want to remember" maxLength={2000} />

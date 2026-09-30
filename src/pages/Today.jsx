@@ -28,7 +28,8 @@ function lastLoggedBleeding(days, from, today) {
 }
 
 function Status({ onGotIt }) {
-  const { analysis: a, today, days, profile, endPeriod, setDay, settings } = useStore();
+  const { analysis: a, today, days, profile, endPeriod, setDay, settings, person } = useStore();
+  const gotItLabel = person.isChild ? `🩸 ${person.You} got a period` : say(settings.voice, 'gotIt');
   const { status, next } = a;
   const [endDate, setEndDate] = useState(null);
 
@@ -36,11 +37,11 @@ function Status({ onGotIt }) {
     return (
       <section className="card">
         <div className="eyebrow">{profile.stage === 'notYet' ? 'Getting ready' : 'Welcome'}</div>
-        <p className="big">{profile.stage === 'notYet' ? 'Your first period hasn’t come yet.' : 'Tap below when your period starts.'}</p>
+        <p className="big">{profile.stage === 'notYet' ? `${person.Your} first period hasn’t come yet.` : `Tap below when ${person.your} period starts.`}</p>
         <p className="muted">{profile.stage === 'notYet'
-          ? 'When it comes, tap the button below. Cadence will help you figure out what to do.'
-          : 'Or add your last period on the calendar if you remember it.'}</p>
-        <button className="btn accent block" onClick={onGotIt}>{say(settings.voice, 'gotIt')}</button>
+          ? (person.isChild ? 'When it comes, log it here. Cadence will help you both through it.' : 'When it comes, tap the button below. Cadence will help you figure out what to do.')
+          : 'Or add the last period on the calendar if you remember it.'}</p>
+        <button className="btn accent block" onClick={onGotIt}>{gotItLabel}</button>
         {profile.stage !== 'notYet' && <Link className="btn block" style={{ marginTop: 10 }} to="/calendar?mode=period">Add a past period</Link>}
       </section>
     );
@@ -65,7 +66,7 @@ function Status({ onGotIt }) {
     const chosen = endDate ?? lastLogged;
     return (
       <section className="card warm">
-        <p className="big">Are you still on your period?</p>
+        <p className="big">{person.isChild ? `Is ${person.your} period still going?` : 'Are you still on your period?'}</p>
         <p>You haven’t logged it since {formatDate(lastLogged, { weekday: 'long', month: 'short', day: 'numeric' })}. We don’t want to guess.</p>
         <div className="stack">
           <button className="btn accent block" onClick={() => setDay(today, { ...days[today], flow: 'yes' })}>Yes, still going</button>
@@ -81,7 +82,7 @@ function Status({ onGotIt }) {
     );
   }
 
-  const since = <p className="muted small" style={{ marginBottom: 0 }}>It’s been {status.since} days since your last period started.</p>;
+  const since = <p className="muted small" style={{ marginBottom: 0 }}>It’s been {status.since} days since {person.your} last period started.</p>;
 
   if (status.phase === 'waiting') {
     return (
@@ -106,7 +107,7 @@ function Status({ onGotIt }) {
   if (status.phase === 'notYet') {
     return (
       <section className="card">
-        <p className="big">Your period hasn’t come yet, and that’s okay.</p>
+        <p className="big">{person.Your} period hasn’t come yet, and that’s okay.</p>
         <p>In the first few years it’s really common for cycles to be longer, or for a month to be skipped. Stress, being sick, sports and travel can shift things too.</p>
         {since}
       </section>
@@ -115,7 +116,7 @@ function Status({ onGotIt }) {
   // longGap
   return (
     <section className="card warm">
-      <p className="big">It’s been a while since your last period.</p>
+      <p className="big">It’s been a while since {person.your} last period.</p>
       <p>It’s been {status.since} days. That can happen, especially in the first few years, but after about 3 months it’s a good idea to mention it to a doctor.</p>
       <Link className="btn small" to="/tell?topic=notCome">Help me tell someone</Link>
     </section>
@@ -124,8 +125,22 @@ function Status({ onGotIt }) {
 
 /** What she needs right now depends on where she is in her journey. */
 function Journey() {
-  const { analysis: a, profile } = useStore();
+  const { analysis: a, profile, person } = useStore();
   const n = a.periods.length;
+
+  if (person.isChild && n <= 1) {
+    return (
+      <section className="card calm">
+        <h2>{profile.stage === 'notYet' && n === 0 ? `Getting ${person.you} ready` : `${person.Your} first periods`}</h2>
+        <ul className="list">
+          <li><Link className="list-link" to="/parents">Parent guide: what to do and say</Link></li>
+          <li><Link className="list-link" to="/learn#products">How pads work (to show {person.you})</Link></li>
+          <li><Link className="list-link" to="/school">Pack a period pouch for school</Link></li>
+          <li><Link className="list-link" to="/normal">Is this normal?</Link></li>
+        </ul>
+      </section>
+    );
+  }
 
   if (profile.stage === 'notYet' && n === 0) {
     return (
@@ -206,7 +221,7 @@ function CalendarChanged() {
 }
 
 export default function Today() {
-  const { analysis: a, today, profile, plans, settings, age, place } = useStore();
+  const { analysis: a, today, profile, plans, settings, age, place, hidden, person, sync } = useStore();
   const checkIns = [...ageCheckIns({ age, stage: profile.stage, periodsCount: a.periods.length }), ...a.checkIns];
   const [gotIt, setGotIt] = useState(false);
   const overlaps = planOverlaps(plans, a.next, today, a.patterns);
@@ -216,10 +231,16 @@ export default function Today() {
 
   return (
     <div className="stack">
+      {sync?.ended && (
+        <section className="card warm row">
+          <span style={{ flex: 1 }}>{person.isChild ? `${person.You} stopped sharing with this phone.` : 'The other phone stopped sharing.'} Everything already here stays.</span>
+          <Link className="btn small" to="/sharing">OK</Link>
+        </section>
+      )}
       <Status onGotIt={() => setGotIt(true)} />
-      {showStart && <button className="btn accent block" onClick={() => setGotIt(true)}>{say(settings.voice, 'gotIt')}</button>}
+      {showStart && <button className="btn accent block" onClick={() => setGotIt(true)}>{person.isChild ? `🩸 ${person.You} got a period` : say(settings.voice, 'gotIt')}</button>}
       {gotIt && <GotPeriod onClose={() => setGotIt(false)} />}
-      {a.status.phase === 'period' && <SchoolImpact />}
+      {a.status.phase === 'period' && !hidden.school && <SchoolImpact />}
       <CalendarChanged />
       {overlaps.map((p) => (
         <section key={p.id} className="card overlap">
@@ -245,14 +266,16 @@ export default function Today() {
 
       <Journey />
 
-      <section className="card row">
-        <span style={{ flex: 1 }}>Want a parent or guardian to know something?</span>
-        <Link className="btn small" to="/people">Send an update</Link>
-      </section>
+      {!person.isChild && (
+        <section className="card row">
+          <span style={{ flex: 1 }}>Want a parent or guardian to know something?</span>
+          <Link className="btn small" to="/people">Send an update</Link>
+        </section>
+      )}
 
       <section className="card">
-        <h2>{say(settings.voice, 'logTitle')}</h2>
-        <p className="muted small">{say(settings.voice, 'logHint')}</p>
+        <h2>{person.isChild ? `How is ${person.name} today?` : say(settings.voice, 'logTitle')}</h2>
+        <p className="muted small">{sync && !sync.ended ? 'Saves right away. Shared with your paired phone, except private notes.' : say(settings.voice, 'logHint')}</p>
         <DayEditor date={today} compact />
       </section>
     </div>

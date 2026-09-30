@@ -265,3 +265,12 @@ select { appearance: auto; }
 
 .nowrap, .public-nav a { white-space: nowrap; }
 @media (max-width: 480px) { .wide-only { display: none; } .public-bar .brand { font-size: 1.05rem; } }
+
+/* ---------- profiles ---------- */
+.switcher { position: relative; }
+.switcher > .btn { white-space: nowrap; }
+.avatar { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--calm-soft); color: var(--calm); font-size: 0.75rem; font-weight: 700; margin-right: 6px; flex-shrink: 0; }
+.menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; min-width: 220px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 6px; box-shadow: 0 8px 30px rgb(0 0 0 / 0.12); }
+.menu-item { display: flex; align-items: center; width: 100%; padding: 10px; border: 0; background: none; border-radius: 10px; font: 600 0.95rem var(--font); color: var(--ink); text-decoration: none; cursor: pointer; text-align: left; }
+.menu-item:hover, .menu-item[aria-checked='true'] { background: var(--surface-2); }
+@media (max-width: 420px) { .topbar:has(.switcher) .brand-name { display: none; } .topbar .normal-btn { padding-inline: 10px; } }

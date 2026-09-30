@@ -1,4 +1,5 @@
-import { NavLink, Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import { useStore } from '../store.jsx';
 
 export function Logo() {
@@ -31,13 +32,48 @@ const TABS = [
   ['/learn', 'Learn', 'learn'],
 ];
 
+/** "Who am I logging for?" Shows when a phone holds more than one profile, or a child's. */
+function ProfileSwitcher() {
+  const { profiles, activeId, switchProfile, person } = useStore();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const { pathname } = useLocation();
+  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    const close = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, []);
+  if (profiles.length < 2 && !person.isChild) return null;
+  const label = (p) => p.name || (p.relation === 'child' ? 'My child' : 'Me');
+  return (
+    <div className="switcher" ref={ref}>
+      <button className="btn small" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen((o) => !o)}>
+        <span className="avatar" aria-hidden="true">{person.label[0].toUpperCase()}</span>{person.label} ▾
+      </button>
+      {open && (
+        <div className="menu" role="menu">
+          <p className="chip-label" style={{ margin: '4px 8px 6px' }}>Logging for</p>
+          {profiles.map((p) => (
+            <button key={p.id} role="menuitemradio" aria-checked={p.id === activeId} className="menu-item" onClick={() => { switchProfile(p.id); setOpen(false); }}>
+              <span className="avatar" aria-hidden="true">{label(p)[0].toUpperCase()}</span>{label(p)}{p.sync && !p.sync.ended && <span className="muted small"> · shared</span>}
+            </button>
+          ))}
+          <Link role="menuitem" className="menu-item" to="/add">＋ Add a profile</Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Layout({ children }) {
   const { saveError, place } = useStore();
   const tabs = TABS.map((t) => (t[0] === '/school' ? [t[0], place.tab, t[2]] : t));
   return (
     <div className="app">
       <header className="topbar">
-        <Link to="/" className="brand"><Logo />Cadence</Link>
+        <Link to="/" className="brand"><Logo /><span className="brand-name">Cadence</span></Link>
+        <ProfileSwitcher />
         <span className="spacer" />
         <Link to="/normal" className="btn small normal-btn">{ICONS.ask}Is this normal?</Link>
         <NavLink to="/settings" className="icon-btn" aria-label="Settings and privacy">{ICONS.settings}</NavLink>

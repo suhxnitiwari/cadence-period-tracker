@@ -15,3 +15,22 @@ const COPY = {
 };
 
 export const say = (voice, key) => COPY[key]?.[voice] ?? COPY[key]?.standard ?? key;
+
+/**
+ * Who a profile is about, for wording. On a parent's phone, a child's profile
+ * reads "Maya's period" and "How is Maya today?" instead of "your".
+ */
+export function personFor(p) {
+  const isChild = p?.relation === 'child';
+  const name = p?.name?.trim() || (isChild ? 'your child' : '');
+  const possessive = isChild ? (p?.name?.trim() ? `${name}’s` : 'your child’s') : 'your';
+  return {
+    isChild,
+    name,
+    label: p?.name?.trim() || (isChild ? 'My child' : 'Me'),
+    your: possessive, // "your" / "Maya’s"
+    Your: possessive[0].toUpperCase() + possessive.slice(1),
+    you: isChild ? name : 'you',
+    You: isChild ? name[0].toUpperCase() + name.slice(1) : 'You',
+  };
+}

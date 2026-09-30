@@ -14,7 +14,8 @@ function Row({ label, value, note }) {
 
 // "What has my body been doing?" Her own information, given back to her. Free.
 export default function MyBody() {
-  const { analysis: a } = useStore();
+  const { analysis: a, person } = useStore();
+  const title = person.isChild ? `${person.Your} body` : 'My body';
   const { lengths, periodLengths, patterns, changes, checkIns, cycles, periods, common, stillChanging } = a;
   const heaviest = patterns.find((p) => p.id === 'heaviest');
   const recent = lengths.slice(-3);
@@ -25,9 +26,9 @@ export default function MyBody() {
   if (periods.length < 2) {
     return (
       <div className="stack">
-        <h1>My body</h1>
+        <h1>{title}</h1>
         <section className="card">
-          <p className="big">We’re just getting to know you 🌱</p>
+          <p className="big">We’re just getting to know {person.isChild ? person.you : 'you'} 🌱</p>
           <p>After you’ve logged a couple of periods, this page will show how long your periods usually last, how far apart they are, your heaviest day and your most common symptoms.</p>
           <p className="muted small">You don’t need to know any of this yourself. Figuring it out is Cadence’s job.</p>
         </section>
@@ -38,17 +39,17 @@ export default function MyBody() {
   return (
     <div className="stack">
       <div>
-        <h1>My body</h1>
+        <h1>{title}</h1>
         <p className="muted">From what you’ve logged. Observations, not a diagnosis.</p>
       </div>
 
       <section className="card">
-        <Row label="My periods" value={usual ? (usual[0] === usual[1] ? `Usually ${usual[0]} days` : `Usually ${usual[0]}–${usual[1]} days`) : 'Still learning'} />
-        <Row label="My cycle" value={recent.length ? `Recently ${Math.min(...recent)}–${Math.max(...recent)} days` : 'Still learning'} note={`${c.emoji} ${c.label}`} />
-        <Row label="My flow" value={heaviest ? heaviest.text.replace('Your heaviest day is usually ', 'Usually heaviest: ').replace('.', '') : 'Log flow to see your heaviest day'} />
+        <Row label="Periods" value={usual ? (usual[0] === usual[1] ? `Usually ${usual[0]} days` : `Usually ${usual[0]}–${usual[1]} days`) : 'Still learning'} />
+        <Row label="Cycle" value={recent.length ? `Recently ${Math.min(...recent)}–${Math.max(...recent)} days` : 'Still learning'} note={`${c.emoji} ${c.label}`} />
+        <Row label="Flow" value={heaviest ? heaviest.text.replace('Your heaviest day is usually ', 'Usually heaviest: ').replace('.', '') : 'Log flow to see your heaviest day'} />
         {common.length > 0 && (
           <div className="pattern" style={{ justifyContent: 'space-between' }}>
-            <span className="muted">My common symptoms</span>
+            <span className="muted">Common symptoms</span>
             <ol style={{ margin: 0, paddingLeft: 20, textAlign: 'left' }}>{common.map((s) => <li key={s.symptom}><strong>{s.symptom}</strong></li>)}</ol>
           </div>
         )}

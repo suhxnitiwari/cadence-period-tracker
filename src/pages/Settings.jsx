@@ -105,7 +105,7 @@ function BringHistory() {
 }
 
 function AboutMe() {
-  const { profile, setBirth, setGrade, age, grade, today } = useStore();
+  const { profile, setBirth, setGrade, age, grade, today, person } = useStore();
   const thisYear = Number(today.slice(0, 4));
   const years = Array.from({ length: 50 }, (_, i) => thisYear - 7 - i);
   const b = profile.birth ?? {};
@@ -115,7 +115,7 @@ function AboutMe() {
   };
   return (
     <section className="card stack">
-      <h2>About me</h2>
+      <h2>{person.isChild ? `About ${person.name}` : 'About me'}</h2>
       <p className="muted small" style={{ margin: 0 }}>Optional. Used only to word things right for you. Stays on this device.</p>
       <div className="row">
         <label className="field spacer"><span>Birthday month</span>
@@ -129,12 +129,38 @@ function AboutMe() {
           </select>
         </label>
       </div>
-      {age != null && <p className="small muted" style={{ margin: 0 }}>You’re {age}.</p>}
+      {age != null && <p className="small muted" style={{ margin: 0 }}>{person.isChild ? `${person.You} is ${age}.` : `You’re ${age}.`}</p>}
       <label className="field"><span>Grade {grade && <span className="muted small">(now {gradeLabel(grade)}. Moves up every August)</span>}</span>
         <select value={grade ?? ''} onChange={(e) => setGrade(e.target.value || null)}>
           <option value="">Prefer not to say</option>{GRADES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
         </select>
       </label>
+    </section>
+  );
+}
+
+function Profiles() {
+  const { profiles, activeId, person, renameProfile, removeProfile, sync } = useStore();
+  const [name, setName] = useState(profiles.find((p) => p.id === activeId)?.name ?? '');
+  const [confirm, setConfirm] = useState(false);
+  return (
+    <section className="card stack">
+      <h2>Profiles on this phone</h2>
+      <p className="muted small" style={{ margin: 0 }}>A parent can keep a profile for each child (and themselves). Switch at the top of the screen.</p>
+      {person.isChild && (
+        <label className="field"><span>Name</span>
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} onBlur={() => name.trim() && renameProfile(name)} maxLength={20} />
+        </label>
+      )}
+      <div className="row">
+        <Link className="btn small" to="/add">＋ Add a profile</Link>
+        <Link className="btn small" to="/sharing">{sync && !sync.ended ? 'Sharing is on' : 'Share with another phone'}</Link>
+      </div>
+      {profiles.length > 1 && (
+        !confirm
+          ? <div><button className="btn small danger" onClick={() => setConfirm(true)}>Remove {person.your} profile from this phone</button></div>
+          : <div className="row"><button className="btn small danger" onClick={() => { removeProfile(activeId); setConfirm(false); }}>Yes, remove it</button><button className="btn small" onClick={() => setConfirm(false)}>Cancel</button></div>
+      )}
     </section>
   );
 }
@@ -169,6 +195,7 @@ export default function Settings() {
         )}
       </section>
 
+      <Profiles />
       <AboutMe />
 
       <section className="card stack">
@@ -185,7 +212,7 @@ export default function Settings() {
       </section>
 
       <section className="card row">
-        <span style={{ flex: 1 }}><strong>My people</strong><br /><span className="muted small">Send a parent or guardian an update you choose.</span></span>
+        <span style={{ flex: 1 }}><strong>Send an update</strong><br /><span className="muted small">A one-time message to a parent or guardian, with just what you choose.</span></span>
         <Link className="btn small" to="/people">Open</Link>
       </section>
 
@@ -204,7 +231,7 @@ export default function Settings() {
       <section className="card stack">
         <h2>Private by design</h2>
         <ul style={{ paddingLeft: 20, margin: 0 }}>
-          <li>Everything is stored only on this device. There’s no account and no server that gets your data.</li>
+          <li>Everything is stored on this device. There’s no account. If you share with another phone, it’s end-to-end encrypted, and you choose what’s shared.</li>
           <li>No ads, no trackers, no selling data. Ever.</li>
           <li>No profiles, no feeds, no strangers, no messages.</li>
           <li>No parent dashboard. You decide what to share and with whom.</li>
@@ -214,7 +241,7 @@ export default function Settings() {
 
       <section className="card stack">
         <h2>Delete everything</h2>
-        <p className="muted small" style={{ margin: 0 }}>Erases every period, symptom, note, plan and setting from this device, right now. It can’t be undone.</p>
+        <p className="muted small" style={{ margin: 0 }}>Erases every profile, period, symptom, note, plan and setting from this device, right now. It can’t be undone. (It doesn’t erase copies on phones you’ve shared with. Stop sharing first if you want those gone too.)</p>
         {!confirmErase
           ? <div><button className="btn small danger" onClick={() => setConfirmErase(true)}>Delete my data</button></div>
           : <div className="row"><button className="btn small danger" onClick={eraseEverything}>Yes, delete everything</button><button className="btn small" onClick={() => setConfirmErase(false)}>Cancel</button></div>}

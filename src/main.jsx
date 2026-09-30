@@ -16,6 +16,8 @@ import About from './pages/About.jsx';
 import Parents from './pages/Parents.jsx';
 import Guardian from './pages/Guardian.jsx';
 import People from './pages/People.jsx';
+import Pair from './pages/Pair.jsx';
+import Sharing from './pages/Sharing.jsx';
 import { Lock } from './components/Lock.jsx';
 import Settings from './pages/Settings.jsx';
 import Report from './pages/Report.jsx';
@@ -60,8 +62,11 @@ function App() {
   // Public pages: anyone can open these, with no setup and no passcode (they show none of her data).
   const pub = { '/home': <Home />, '/about': <About />, '/parents': <Parents />, '/guardian': <Guardian /> }[pathname];
   if (pub) return pub;
-  if (!profile) return pathname === '/start' ? <Onboarding /> : pathname === '/' ? <Home /> : <Navigate to="/" replace />;
   if (lock && !unlocked) return <Lock onUnlock={() => setUnlocked(true)} />;
+  // Joining from another phone works whether or not this phone is set up yet.
+  if (pathname === '/pair') return <Pair />;
+  if (!profile) return pathname === '/start' ? <Onboarding /> : pathname === '/' ? <Home /> : <Navigate to="/" replace />;
+  if (pathname === '/add') return <Onboarding adding />;
   return (
     <Layout>
       <Routes>
@@ -73,6 +78,7 @@ function App() {
         <Route path="/normal" element={<Normal />} />
         <Route path="/tell" element={<Tell />} />
         <Route path="/people" element={<People />} />
+        <Route path="/sharing" element={<Sharing />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/report" element={<Report />} />
         <Route path="*" element={<Navigate to="/" replace />} />

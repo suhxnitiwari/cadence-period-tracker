@@ -53,11 +53,22 @@ The market is converging: privacy, irregular-cycle predictions and education are
 **Bring my history / take it with me**
 - Import a Cadence backup, **any CSV** from another tracker or a spreadsheet (date and flow columns are auto-detected, including start/end formats), or paste a list of start dates. Export to JSON or CSV. Delete everything instantly.
 
+## Families: profiles and encrypted sharing
+
+Not every 9-year-old has a phone, and many parents want to help.
+
+- **Profiles.** A parent can log for a child with no phone (or several children, and themselves). Wording follows the profile: “Maya’s period, day 2”, “How is Maya today?”.
+- **Share with another phone.** One phone shows a QR code; the other scans it and says whose phone it is (“Mine” or “I’m a parent or guardian”). When a child gets her first phone, her whole history moves over.
+- **End-to-end encrypted.** Pairing shares one random 256-bit secret, only inside the QR code. Each phone derives an AES-GCM key, an HMAC key that turns record names like `day:2026-09-30` into random IDs, and an access token. The relay (`server/`) stores ciphertext under those IDs. It never sees names, dates or anything logged, and it stores no timestamps.
+- **She’s in charge.** On her own phone, periods and flow are shared; pain, symptoms and feelings, and school impact stay private unless she turns them on. A parent’s phone hides what she keeps private (“That’s by design”), and turning a category off clears it from the parent’s copy. Private notes never leave the phone they were written on.
+- **Either side can stop sharing.** That deletes the encrypted copy from the relay, and the other phone is told. Everything already on each phone stays.
+- **Separately, “Send an update”** lets her send a one-time snapshot (e.g. “Could we get more pads?”) by text or QR, with no server involved at all.
+
 ## Private by design
 
 Built for users as young as 8, so privacy is architecture, not policy:
 
-- **No account, no server that receives her data.** Everything lives in the browser’s IndexedDB on her device. No name, email or age is collected.
+- **No account.** Everything lives in the browser’s IndexedDB on her device. No name, email or phone number is collected. The only thing that ever leaves the device is opt-in, end-to-end-encrypted sharing between phones she pairs.
 - **No third-party requests at all.** The production build ships a strict Content-Security-Policy (`default-src 'self'`). System fonts are used instead of Google Fonts, and there’s no analytics.
 - No ads, no data sales, no profiles, no feed, no strangers, no DMs, no location.
 - **No parent surveillance.** She decides what to share, in her own words.
@@ -81,16 +92,25 @@ src/lib/tell.js        "Help me tell someone" drafts
 src/lib/ics.js         calendar ranges + discreet reminders (Google / Apple / Outlook)
 src/lib/importers.js   CSV + pasted-date import
 src/lib/plans.js       "My life" overlap
+src/lib/syncCore.js    end-to-end encrypted sharing: keys, records, what she shares, merging
+src/lib/useSync.js     background sync engine
+server/                the relay: ciphertext in, ciphertext out
 src/content/           Is this normal? · Learn · School Mode content
 src/pages/             Today · Calendar · My Body · School · Learn · Normal · Tell · Report · Settings
 ```
 
 ```bash
 npm install
-npm run dev     # http://localhost:5173
+npm run dev                 # http://localhost:5173
 npm test
-npm run build   # static site in dist/, deployable to any static host
+npm run build               # static site in dist/
+
+cd server && npm install
+npm run dev                 # encrypted sync relay on :4000 (in-memory DB without DATABASE_URL)
+npm test
 ```
+
+**Deploying sharing:** create a free Neon Postgres database and a Render web service from `render.yaml`, set `DATABASE_URL`, then set the repository variable `SYNC_URL` to the Render URL. The GitHub Pages build picks it up and adds exactly that origin to the Content-Security-Policy. Without it, the app works fully on-device and sharing says it isn’t switched on yet.
 
 ## Roadmap
 
