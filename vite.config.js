@@ -22,6 +22,8 @@ const csp = {
 };
 
 export default defineConfig({
+  // GitHub Pages serves the site from /cadence-period-tracker/; locally it's /.
+  base: process.env.BASE_PATH || '/',
   plugins: [react(), csp],
   server: { port: 5173 },
 });

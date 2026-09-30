@@ -2,9 +2,10 @@
   "name": "Cadence",
   "short_name": "Cadence",
   "description": "Designed for your first period. Built for every period after.",
-  "start_url": "/",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#f7f5f1",
   "theme_color": "#f7f5f1",
-  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }

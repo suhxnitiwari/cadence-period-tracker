@@ -1,9 +1,10 @@
 // Offline support: Cadence works with no connection, like a real app.
 // Only this app's own files are cached. Her data lives in IndexedDB, never here.
 const CACHE = 'cadence-v1';
+const BASE = new URL(self.registration.scope).pathname; // '/' locally, '/cadence-period-tracker/' on GitHub Pages
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/icon.svg', '/manifest.webmanifest'])));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll([BASE, `${BASE}icon.svg`, `${BASE}manifest.webmanifest`])));
   self.skipWaiting();
 });
 
@@ -18,9 +19,9 @@ self.addEventListener('fetch', (e) => {
   // Pages: network first so updates arrive, cached shell when offline.
   if (e.request.mode === 'navigate') {
     e.respondWith(fetch(e.request).then((res) => {
-      caches.open(CACHE).then((c) => c.put('/', res.clone()));
+      caches.open(CACHE).then((c) => c.put(BASE, res.clone()));
       return res;
-    }).catch(() => caches.match('/')));
+    }).catch(() => caches.match(BASE)));
     return;
   }
   // Built assets are content-hashed, so cache-first is safe.
