@@ -1,31 +1,29 @@
 # Cadence
 
-### Designed for your first period. Built for every period after.
+*Designed for your first period. Built for every period after.*
 
-**Periods aren’t a luxury.** Period tracking stays free.
-**You don’t need to know your cycle.** Understanding it is our job.
-**Your period fits into your life.** School, college, work, travel, sports and everything after.
+[![Test and deploy](https://github.com/suhxnitiwari/cadence-period-tracker/actions/workflows/deploy.yml/badge.svg)](https://github.com/suhxnitiwari/cadence-period-tracker/actions/workflows/deploy.yml)
 
-Cadence is a nonprofit menstrual-health app. It is designed first for the hardest possible user: someone who knows almost nothing about her cycle, often a girl in the first few years after her first period. It is good enough that she never has to graduate from it. At 9 it answers *“What is happening?”*, at 12 *“Is this normal?”*, at 15 *“How do I deal with this at school?”*, and at 24 *“Will this overlap with my trip?”* Same app, same history, more useful over time.
+**Live:** https://suhxnitiwari.github.io/cadence-period-tracker/ (installable on any phone, works offline)
 
-© 2026 Suhani Tiwari. All rights reserved.
+## What it is
 
----
+Cadence is a free, private menstrual-health app designed first for the hardest possible user: someone who knows almost nothing about her cycle, often a girl in the first few years after her first period. It's meant to be good enough that she never has to graduate from it. At 9 it answers *"What is happening?"*, at 12 *"Is this normal?"*, at 15 *"How do I deal with this at school?"*, and at 24 *"Will this overlap with my trip?"* Same app, same history, more useful over time.
 
-## Why it exists
+There's no account, no ads and no paywall. Logging, full history, predictions, patterns, education, School Mode, export and delete are free.
 
-The market is converging: privacy, irregular-cycle predictions and education are becoming table stakes. What’s still missing:
+### What makes it different
 
-| What others do | What Cadence does |
+| Common in period apps | What Cadence does |
 |---|---|
-| **Paywall understanding.** Soso rations period logs with credits; Bloom, Ove and others put tracking, predictions or insights behind subscriptions. | **Free means free.** Logging, full history, predictions, patterns, education, School Mode, export and delete are free forever. A girl never loses access to her own history because she can’t pay. |
-| **Make girls turn adult features *off*.** Fertility windows, ovulation, pregnancy, sex tracking and community chat are built into apps marketed to young users. | **Build it right from the start.** None of those exist here. A test enforces it (see below). |
-| **Fake precision and panic.** “Period starts Oct 12.” “PERIOD 11 DAYS LATE.” | **Honest ranges.** “May come around Oct 14–20 · 🌱 Learning.” Ranges narrow only with consistent history (🌱 → 🌿 → 🌷). Never “late”. |
-| **Invent menstruation.** Forget to end a period and some apps count 23 days of bleeding. | **Never invents.** If she stops logging, Cadence asks *“Are you still on your period?”* |
-| **Stop at tracking.** Calendar → period → next period. | **NOTICE → UNDERSTAND → PREPARE → SPEAK UP.** Patterns, change detection, School Mode, and help telling a trusted adult or doctor. |
-| **Require cycle knowledge.** “What’s your average cycle length?” | **Zero-knowledge onboarding.** “Have you had your first period?” and “Remember when your last one started?” That’s it. |
+| Tracking, predictions or insights behind a subscription. | **Free means free.** A girl never loses access to her own history because she can't pay. |
+| Fertility, ovulation, pregnancy and sex tracking built into apps young people use. | **None of it exists here,** and a test fails the build if it ever shows up. |
+| Fake precision and panic: "Period starts Oct 12." "PERIOD 11 DAYS LATE." | **Honest ranges:** "May come around Oct 14–20 · 🌱 Learning." Ranges narrow only with consistent history (🌱 → 🌿 → 🌷). Never "late". |
+| Forget to end a period and the app counts 23 days of bleeding. | **Never invents data.** If she stops logging, Cadence asks "Are you still on your period?" |
+| "What's your average cycle length?" | **Zero-knowledge onboarding:** "Have you had your first period?" and "Remember when your last one started?" That's it. |
+| Calendar → period → next period. | **Notice → Understand → Prepare → Speak up.** |
 
-## What’s in V1
+## Features
 
 **Notice**
 - **🩸 I got my period.** One tap, then *“Is this your first one?”*, then *“How’s your flow?”* with emoji options and **I don’t know**, which explains light, medium and heavy in plain words.
@@ -53,20 +51,9 @@ The market is converging: privacy, irregular-cycle predictions and education are
 **Bring my history / take it with me**
 - Import a Cadence backup, **any CSV** from another tracker or a spreadsheet (date and flow columns are auto-detected, including start/end formats), or paste a list of start dates. Export to JSON or CSV. Delete everything instantly.
 
-## Families: profiles and encrypted sharing
-
-Not every 9-year-old has a phone, and many parents want to help.
-
-- **Profiles.** A parent can log for a child with no phone (or several children, and themselves). Wording follows the profile: “Maya’s period, day 2”, “How is Maya today?”.
-- **Share with another phone.** One phone shows a QR code; the other scans it and says whose phone it is (“Mine” or “I’m a parent or guardian”). When a child gets her first phone, her whole history moves over.
-- **End-to-end encrypted.** Pairing shares one random 256-bit secret, only inside the QR code. Each phone derives an AES-GCM key, an HMAC key that turns record names like `day:2026-09-30` into random IDs, and an access token. The relay (`server/`) stores ciphertext under those IDs. It never sees names, dates or anything logged, and it stores no timestamps.
-- **She’s in charge.** On her own phone, periods and flow are shared; pain, symptoms and feelings, and school impact stay private unless she turns them on. A parent’s phone hides what she keeps private (“That’s by design”), and turning a category off clears it from the parent’s copy. Private notes never leave the phone they were written on.
-- **Either side can stop sharing.** That deletes the encrypted copy from the relay, and the other phone is told. Everything already on each phone stays.
-- **Separately, “Send an update”** lets her send a one-time snapshot (e.g. “Could we get more pads?”) by text or QR, with no server involved at all.
-
 ## Private by design
 
-Built for users as young as 8, so privacy is architecture, not policy:
+Built for users as young as 8, so privacy is architecture, not policy.
 
 - **No account.** Everything lives in the browser’s IndexedDB on her device. No name, email or phone number is collected. The only thing that ever leaves the device is opt-in, end-to-end-encrypted sharing between phones she pairs.
 - **No third-party requests at all.** The production build ships a strict Content-Security-Policy (`default-src 'self'`). System fonts are used instead of Google Fonts, and there’s no analytics.
@@ -76,15 +63,28 @@ Built for users as young as 8, so privacy is architecture, not policy:
 - **Optional passcode** that re-locks after a minute in the background. (It keeps casual eyes out on a shared device. It isn’t encryption.)
 - Designed with COPPA in mind: collecting nothing is the strongest position. **Specialized counsel is still needed before a U.S. launch.**
 
-## Product guardrails, enforced in tests
+## How it's built
 
-`npm test` fails if the app’s source mentions fertility, ovulation, contraception, conception or sex tracking, or uses “your period is late” language. The mission is checked in CI, not just written in a doc.
+**Local-first.** All data lives in IndexedDB on the device. The app is a React PWA with a web manifest and a service worker that caches only the app's own files (network-first for pages, so updates still arrive), and it works with no connection.
 
-Other tests cover: honest ranges at every stage of history, never inventing bleeding, change detection, patterns and natural phrasing, the “Is this normal?” search against real phrasings (“Why do I poop more?”, “I got blood on my clothes”), discreet calendar output, importers, and message drafting (24 tests).
+**End-to-end encrypted family sharing.** Not every 9-year-old has a phone, and many parents want to help.
 
-## Tech
+- **Profiles.** A parent can log for a child with no phone (or several children, and themselves). Wording follows the profile: “Maya’s period, day 2”, “How is Maya today?”.
+- **Share with another phone.** One phone shows a QR code; the other scans it and says whose phone it is (“Mine” or “I’m a parent or guardian”). When a child gets her first phone, her whole history moves over.
+- **End-to-end encrypted.** Pairing shares one random 256-bit secret, only inside the QR code. Each phone derives an AES-GCM key, an HMAC key that turns record names like `day:2026-09-30` into random IDs, and an access token. The relay (`server/`) stores ciphertext under those IDs. It never sees names, dates or anything logged, and it stores no timestamps.
+- **She’s in charge.** On her own phone, periods and flow are shared; pain, symptoms and feelings, and school impact stay private unless she turns them on. A parent’s phone hides what she keeps private (“That’s by design”), and turning a category off clears it from the parent’s copy. Private notes never leave the phone they were written on.
+- **Either side can stop sharing.** That deletes the encrypted copy from the relay, and the other phone is told. Everything already on each phone stays.
+- **Separately, “Send an update”** lets her send a one-time snapshot (e.g. “Could we get more pads?”) by text or QR, with no server involved at all.
 
-React 18 + React Router + Vite, with no UI or chart libraries. It’s an installable web app (manifest and offline service worker) that works on any phone.
+Under the hood (`src/lib/syncCore.js`), the 256-bit pairing secret goes through HKDF-SHA-256 (Web Crypto) to derive an AES-GCM key, an HMAC-SHA-256 key and an access token. Each record is encrypted with AES-GCM, with its HMAC ID bound in as additional authenticated data. The relay in `server/` is a small Express app with rate limiting and two Postgres tables: random space IDs with a hashed access token, and ciphertext records. It keeps no timestamps, because *when* someone logs could itself reveal cycle timing.
+
+**Strict CSP, generated at build time.** The Vite build injects a Content-Security-Policy of `default-src 'self'`. If a sync relay URL is configured, exactly that one origin is added; otherwise the app makes no network requests beyond its own files.
+
+**Product guardrails enforced in tests.** `npm test` fails if the app's source mentions fertility, ovulation, contraception, conception or sex tracking, or uses "your period is late" language. The GitHub Actions workflow runs the app and relay tests before every GitHub Pages deploy, so the mission is checked in CI, not just written in a doc.
+
+**41 automated tests** (36 for the app, 5 for the relay) also cover honest ranges at every stage of history, never inventing bleeding, change detection, patterns and natural phrasing, the "Is this normal?" search against real phrasings ("Why do I poop more?", "I got blood on my clothes"), discreet calendar output, importers, message drafting and the encrypted sync.
+
+**No UI or chart libraries.** The cycle chart, calendar and bottom sheets are hand-built in React and CSS. The only runtime dependencies are React, React Router and a QR code generator.
 
 ```
 src/lib/cycles.js      periods, ranged predictions, confidence, patterns, change detection, check-ins
@@ -98,6 +98,20 @@ server/                the relay: ciphertext in, ciphertext out
 src/content/           Is this normal? · Learn · School Mode content
 src/pages/             Today · Calendar · My Body · School · Learn · Normal · Tell · Report · Settings
 ```
+
+## Design choices
+
+- Plain, warm wording written for a 9-year-old, with a *"How should Cadence talk to you?"* setting (Simple, Standard, Grown-up) that changes the voice but never unlocks adult content.
+- Every "Is this normal?" answer follows the same shape: *What's happening · Usually · Keep an eye on · Tell someone if…*
+- Predicted windows are drawn as striped ranges on the calendar, never single days.
+- Discreet by default: calendar events say "Personal" unless she chooses otherwise.
+- System fonts and a light and dark theme that follows the phone.
+
+## Tech stack
+
+React 18, React Router, Vite, IndexedDB, Web Crypto, service worker / PWA · Node.js + Express + PostgreSQL relay (Neon, Render) · Node test runner · GitHub Actions + GitHub Pages.
+
+## Run it locally
 
 ```bash
 npm install
@@ -123,3 +137,5 @@ npm test
 ---
 
 © 2026 Suhani Tiwari. All rights reserved. See [LICENSE](LICENSE). Cadence provides general information and is not medical advice.
+
+Built by [Suhani Tiwari](https://suhanitiwari.com).
